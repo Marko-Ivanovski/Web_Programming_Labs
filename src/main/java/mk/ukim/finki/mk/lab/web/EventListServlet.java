@@ -8,8 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import mk.ukim.finki.mk.lab.model.Event;
 import mk.ukim.finki.mk.lab.service.EventService;
 import mk.ukim.finki.mk.lab.service.impl.EventServiceImpl;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.thymeleaf.context.WebContext;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.web.IWebExchange;
@@ -32,6 +30,11 @@ public class EventListServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         List<Event> eventList = eventService.listAll();
+        if(req.getParameter("searchText") != null && (req.getParameter("minRating") != null)){
+            eventList = eventService.searchEvents(req.getParameter("searchText"),Double.parseDouble(req.getParameter("minRating")));
+        } else {
+            eventList = eventService.listAll();
+        }
         IWebExchange iWebExchange = JakartaServletWebApplication
                 .buildApplication(getServletContext())
                 .buildExchange(req, resp);
@@ -39,26 +42,4 @@ public class EventListServlet extends HttpServlet {
         context.setVariable("events", eventList);
         springTemplateEngine.process("listEvents.html", context, resp.getWriter());
     }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String eventName = req.getParameter("eventName");
-        String numTicketsParam = req.getParameter("numTickets");
-
-        Integer numTickets = null;
-        if (numTicketsParam != null && !numTicketsParam.isEmpty()) {
-            try {
-                numTickets = Integer.valueOf(numTicketsParam);
-            } catch (NumberFormatException e) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid number of tickets.");
-                return;
-            }
-        }
-
-        req.getSession().setAttribute("eventName", eventName);
-        req.getSession().setAttribute("numTickets", numTickets);
-
-        resp.sendRedirect(req.getContextPath() + "/eventBooking");
-    }
-
 }
