@@ -7,14 +7,13 @@ import mk.ukim.finki.mk.lab.service.EventService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
     public EventServiceImpl(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;       // Without @Repository in "EventRepository" will throw error because of no autowire.
+        this.eventRepository = eventRepository;
     }
 
     @Override
@@ -23,10 +22,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> searchEvents(String eventName, double minRating) {
-        return eventRepository.findAll().stream()
-                .filter(event -> event.getName().toLowerCase().contains(eventName.toLowerCase()) &&
-                        event.getPopularityScore() >= minRating)
-                .collect(Collectors.toList());
+    public List<Event> searchEvents(String text, double min) {
+        return eventRepository.searchNames(text, min);
     }
 }

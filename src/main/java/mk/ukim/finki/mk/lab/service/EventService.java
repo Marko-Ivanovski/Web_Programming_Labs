@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface EventService {
     List<Event> listAll();
-    List<Event> searchEvents(String text, double minRating);
+
+    List<Event> searchEvents(String text, double min);
 }
