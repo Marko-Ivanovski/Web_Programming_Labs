@@ -1,37 +1,50 @@
 package mk.ukim.finki.mk.lab.repository;
 
 import mk.ukim.finki.mk.lab.model.Event;
+import mk.ukim.finki.mk.lab.bootstrap.DataHolder;
+import mk.ukim.finki.mk.lab.model.Location;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
 public class EventRepository {
-    List<Event> events = new ArrayList<>();
-
-    public EventRepository() {
-        events.add(new Event("Event-1","Description-1",4.5));
-        events.add(new Event("Event-2","Description-2",5.3));
-        events.add(new Event("Event-3","Description-3",1.9));
-        events.add(new Event("Event-4","Description-4",2.2));
-        events.add(new Event("Event-5","Description-5",7.1));
-        events.add(new Event("Event-6","Description-6",9.0));
-        events.add(new Event("Event-7","Description-7",7.7));
-        events.add(new Event("Event-8","Description-8",3.6));
-        events.add(new Event("Event-9","Description-9",1.2));
-        events.add(new Event("Event-10","Description-10",5.6));
-    }
-
     public List<Event> findAll() {
-        return events;
+        return DataHolder.events;
     }
 
     public List<Event> searchNames(String text, Double min) {
-        return events.stream()
+        return DataHolder.events.stream()
                 .filter(r -> (r.getName().contains(text) || r.getDescription().contains(text)) &&
                         (r.getPopularityScore() >= min))
                 .collect(Collectors.toList());
+    }
+
+    public Optional<Event> findById(Long id) {
+        return DataHolder.events.stream()
+                .filter(r -> r.getId().equals(id))
+                .findFirst();
+    }
+
+    public Optional<Event> findByName(String name) {
+        return DataHolder.events.stream()
+                .filter(r -> r.getName().equals(name))
+                .findFirst();
+    }
+
+    public Optional<Event> save(String name, String description, double popularityScore, Location location) {
+        if (location == null) {
+            throw new IllegalArgumentException("Location cannot be null");
+        }
+        Event event = new Event(name, description, popularityScore, location);
+        DataHolder.events.removeIf(r -> r.getName().equals(name));
+        DataHolder.events.add(event);
+        return Optional.of(event);
+    }
+
+    public void deleteById(Long id) {
+        DataHolder.events.removeIf(r -> r.getId().equals(id));
     }
 }

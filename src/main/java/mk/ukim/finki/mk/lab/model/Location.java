@@ -3,19 +3,18 @@ package mk.ukim.finki.mk.lab.model;
 import lombok.Data;
 
 @Data
-public class Event {
+public class Location {
     private Long id;
     private String name;
+    private String address;
+    private String capacity;
     private String description;
-    private double popularityScore;
 
-    private Location location;
-
-    public Event(String name, String description, double popularityScore, Location location) {
+    public Location(String name, String address, String capacity, String description) {
         this.id = (long) (Math.random() * 1000);
         this.name = name;
+        this.address = address;
+        this.capacity = capacity;
         this.description = description;
-        this.popularityScore = popularityScore;
-        this.location = location;
     }
 }
