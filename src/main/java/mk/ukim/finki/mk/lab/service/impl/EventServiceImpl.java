@@ -3,9 +3,8 @@ package mk.ukim.finki.mk.lab.service.impl;
 import mk.ukim.finki.mk.lab.model.Event;
 import mk.ukim.finki.mk.lab.model.Location;
 import mk.ukim.finki.mk.lab.repository.EventRepository;
-
-import mk.ukim.finki.mk.lab.repository.LocationRepository;
 import mk.ukim.finki.mk.lab.service.EventService;
+import mk.ukim.finki.mk.lab.service.LocationService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,11 +13,11 @@ import java.util.Optional;
 @Service
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
-    private final LocationRepository locationRepository;
+    private final LocationService locationService;
 
-    public EventServiceImpl(EventRepository eventRepository, LocationRepository locationRepository) {
+    public EventServiceImpl(EventRepository eventRepository, LocationService locationService) {
         this.eventRepository = eventRepository;
-        this.locationRepository = locationRepository;
+        this.locationService = locationService;
     }
 
     @Override
@@ -27,13 +26,42 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> searchEvents(String text, double min) {
-        return eventRepository.searchNames(text, min);
+    public Optional<Event> findById(Long id) {
+        return eventRepository.findById(id);
     }
 
     @Override
-    public Optional<Event> findById(Long id){
-        return eventRepository.findById(id);
+    public void save(Long id, String name, String description, double popularityScore, Long locationId) {
+        Location location = locationService.findById(locationId);
+        if (location == null) {
+            throw new IllegalArgumentException("Location with ID " + locationId + " not found");
+        }
+
+        Event event;
+
+        if (id != null && eventRepository.findById(id).isPresent()) {
+            event = eventRepository.findById(id).get();
+        } else {
+            event = new Event();
+        }
+
+        event.setName(name);
+        event.setDescription(description);
+        event.setPopularityScore(popularityScore);
+        event.setLocation(location);
+
+        eventRepository.save(event);
+    }
+
+
+    @Override
+    public void deleteById(Long id) {
+        eventRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Event> findByLocationId(Long locationId) {
+        return eventRepository.findAllByLocation_Id(locationId);
     }
 
     @Override
@@ -42,13 +70,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Optional<Event> save(String name, String description, double popularityScore, Long locationId) {
-        Location location = this.locationRepository.findById(locationId).orElse(null);
-        return this.eventRepository.save(name, description, popularityScore, location);
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        this.eventRepository.deleteById(id);
+    public List<Event> searchEvents(String text, double min) {
+        return eventRepository.findAll().stream()
+                .filter(event -> event.getName().contains(text) || event.getDescription().contains(text))
+                .filter(event -> event.getPopularityScore() >= min)
+                .toList();
     }
 }

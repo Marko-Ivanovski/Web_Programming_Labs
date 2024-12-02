@@ -6,7 +6,6 @@ import mk.ukim.finki.mk.lab.service.LocationService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class LocationServiceImpl implements LocationService {
@@ -22,7 +21,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Optional<Location> findById(Long id){
-        return locationRepository.findById(id);
+    public Location findById(Long id) {
+        return locationRepository.findById(id).orElse(null);
     }
 }
