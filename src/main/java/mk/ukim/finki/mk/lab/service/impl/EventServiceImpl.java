@@ -39,8 +39,8 @@ public class EventServiceImpl implements EventService {
 
         Event event;
 
-        if (id != null && eventRepository.findById(id).isPresent()) {
-            event = eventRepository.findById(id).get();
+        if (id != null) {
+            event = eventRepository.findById(id).orElseThrow(()-> new IllegalArgumentException("Event with ID " + id + " not found"));
         } else {
             event = new Event();
         }

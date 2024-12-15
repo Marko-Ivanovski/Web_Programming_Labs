@@ -1,13 +1,12 @@
 package mk.ukim.finki.mk.lab.web.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import jakarta.servlet.http.HttpSession;
 import mk.ukim.finki.mk.lab.model.Event;
 import mk.ukim.finki.mk.lab.service.EventService;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -30,7 +29,7 @@ public class EventBookingController {
     }
 
     // POST Event booked
-    @PostMapping("/event-booking")
+    @PostMapping("/eventBooking")
     public String bookEvent(@RequestParam Long eventId,
                             @RequestParam int numTickets,
                             HttpServletRequest request,
@@ -39,29 +38,37 @@ public class EventBookingController {
 
         Optional<Event> event = eventService.findById(eventId);
 
-        event.ifPresentOrElse(e -> {
-            model.addAttribute("eventName", e.getName());
+        if (event.isPresent()) {
+            // Add attributes to model if needed
+            model.addAttribute("eventName", event.get().getName());
             model.addAttribute("numTickets", numTickets);
             model.addAttribute("attendeeName", "Petko Petkov");
             model.addAttribute("attendeeAddress", clientIp);
-        }, () -> model.addAttribute("error", "Event not found for ID: " + eventId));
-
-        return "bookingConfirmation";
+            return "redirect:/bookingConfirmation";
+        } else {
+            model.addAttribute("error", "Event not found for ID: " + eventId);
+            return "listEvents";
+        }
     }
 
-    // GET for the booking confirmation page, where we retrieve data from the session
-    @PostMapping("/bookingConfirmation")
+    // GET for the booking confirmation page
+    @GetMapping("/bookingConfirmation")
     public String showBookingConfirmation(HttpSession session, Model model) {
         String eventName = (String) session.getAttribute("eventName");
         Integer numTickets = (Integer) session.getAttribute("numTickets");
         String attendeeName = (String) session.getAttribute("attendeeName");
         String attendeeAddress = (String) session.getAttribute("attendeeAddress");
 
+        if (eventName == null || numTickets == null || attendeeName == null || attendeeAddress == null) {
+            model.addAttribute("error", "Booking information not found.");
+            return "listEvents";  // Redirect to another page if session is empty
+        }
+
         model.addAttribute("eventName", eventName);
         model.addAttribute("numTickets", numTickets);
         model.addAttribute("attendeeName", attendeeName);
         model.addAttribute("attendeeAddress", attendeeAddress);
 
-        return "bookingConfirmation";
+        return "bookingConfirmation";  // This should correspond to bookingConfirmation.html
     }
 }
